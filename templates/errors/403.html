@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Acceso Denegado (403) - Farmacia Práctica{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-6 text-center">
+    <div class="d-inline-flex p-4 bg-danger-subtle text-danger rounded-circle mb-3">
+      <i class="bi bi-shield-slash fs-1"></i>
+    </div>
+    <h2 class="fw-bold text-dark">Acceso Restringido (403)</h2>
+    <p class="lead text-muted">{{ mensaje|default:"No tienes los privilegios necesarios para acceder a este recurso." }}</p>
+    
+    {% if rol_actual %}
+      <div class="badge bg-secondary px-3 py-2 fs-6 mb-4">
+        Rol actual: {{ rol_actual }}
+      </div>
+    {% endif %}
+
+    <div class="alert alert-light border small text-start p-3 mb-4">
+      <i class="bi bi-info-circle me-1 text-primary"></i>
+      <strong>Política de seguridad (RBAC / OWASP):</strong> Este evento de acceso no autorizado ha sido registrado en la bitácora inmutable de auditoría para fines de supervisión académica.
+    </div>
+
+    <div>
+      <a href="{% url 'inventario:dashboard' %}" class="btn btn-primary px-4">
+        <i class="bi bi-house-door me-1"></i> Volver al Panel Principal
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

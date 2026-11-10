@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Actividad - Farmacia Práctica{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold mb-0">Registro de Actividad <span class="badge bg-secondary fs-6 fw-normal">Solo Inserción / Inmutable</span></h3>
+    <p class="text-muted small mb-0">Bitácora auditable para supervisión y evaluación docente</p>
+  </div>
+</div>
+
+<!-- Filtros de búsqueda -->
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+  <div class="card-body p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Buscar por usuario, acción o entidad..." value="{{ query }}">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="accion" class="form-select">
+          <option value="">Todas las acciones...</option>
+          {% for acc in acciones_disponibles %}
+            <option value="{{ acc }}" {% if accion_filtro == acc %}selected{% endif %}>{{ acc }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
+        {% if query or accion_filtro %}
+          <a href="{% url 'seguridad:auditoria' %}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Tabla de Eventos -->
+<div class="card shadow-sm border-0 rounded-3">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 font-monospace" style="font-size: 0.9rem;">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Entidad</th>
+            <th>IP</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in eventos %}
+            <tr>
+              <td class="text-nowrap">{{ ev.fecha_hora|date:"Y-m-d H:i:s" }}</td>
+              <td class="fw-semibold text-primary">
+                {{ ev.usuario_str }}
+              </td>
+              <td>
+                <span class="badge 
+                  {% if 'EXITOSO' in ev.accion or 'CREAD' in ev.accion or 'INGRESAD' in ev.accion %}bg-success-subtle text-success border border-success
+                  {% elif 'BLOQUEADA' in ev.accion or 'DENEGADO' in ev.accion or 'FALLIDO' in ev.accion %}bg-danger-subtle text-danger border border-danger
+                  {% elif '2FA' in ev.accion %}bg-warning-subtle text-warning-emphasis border border-warning
+                  {% else %}bg-light text-dark border{% endif %}">
+                  {{ ev.accion }}
+                </span>
+              </td>
+              <td>{{ ev.entidad }}</td>
+              <td class="text-muted small">{{ ev.ip|default:"-" }}</td>
+              <td class="small text-truncate" style="max-width: 320px;" title="{{ ev.detalle }}">
+                {{ ev.detalle }}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-1"></i> No se encontraron eventos de auditoría registrados.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

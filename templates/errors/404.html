@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Página No Encontrada (404) - Farmacia Práctica{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-6 text-center">
+    <div class="d-inline-flex p-4 bg-warning-subtle text-warning-emphasis rounded-circle mb-3">
+      <i class="bi bi-question-circle fs-1"></i>
+    </div>
+    <h2 class="fw-bold text-dark">Recurso no encontrado (404)</h2>
+    <p class="text-muted">El registro, medicamento o dirección solicitada no existe o fue reubicada.</p>
+    <a href="{% url 'inventario:dashboard' %}" class="btn btn-primary px-4 mt-2">
+      <i class="bi bi-house-door me-1"></i> Volver al Inicio
+    </a>
+  </div>
+</div>
+{% endblock %}

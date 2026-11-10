@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Verificación 2FA - Farmacia Práctica INACAP{% endblock %}
+
+{% block auth_content %}
+<div class="row justify-content-center">
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow border-0 rounded-4">
+      <div class="card-body p-4 p-md-5 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis rounded-circle mb-3" style="width: 64px; height: 64px;">
+          <i class="bi bi-shield-lock fs-2"></i>
+        </div>
+        <h4 class="fw-bold mb-2">Segundo factor</h4>
+        <p class="text-muted small mb-4">
+          Ingresa el código de 6 dígitos de tu app autenticadora (TOTP).<br>
+          {% if modo_practica %}
+            <span class="badge bg-light text-dark border mt-2">
+              Código de práctica: <strong>{{ codigo_practica }}</strong>
+            </span>
+          {% endif %}
+        </p>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-4">
+            {{ form.codigo }}
+            {% if form.codigo.errors %}
+              <div class="text-danger small mt-2">{{ form.codigo.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm mb-3">
+            <i class="bi bi-check-circle me-1"></i> Verificar
+          </button>
+
+          <a href="{% url 'seguridad:login' %}" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="bi bi-arrow-left me-1"></i> Volver al inicio de sesión
+          </a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

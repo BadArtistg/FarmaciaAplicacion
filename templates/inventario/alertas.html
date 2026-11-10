@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Alertas de Stock y Vencimiento - Farmacia Práctica{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-0">Centro de Alertas de Stock y Vencimientos</h3>
+    <p class="text-muted small mb-0">Monitoreo para prevención de quiebres de stock y pérdidas por caducidad (CU-04 / HU2)</p>
+  </div>
+  <a href="{% url 'inventario:producto_list' %}" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-box-arrow-up-right me-1"></i> Ir al Inventario
+  </a>
+</div>
+
+<!-- 1. Alertas de Stock Crítico -->
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+  <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
+    <i class="bi bi-shield-exclamation text-danger fs-5"></i>
+    <h5 class="fw-bold mb-0">Medicamentos en Nivel Crítico de Stock</h5>
+    <span class="badge bg-danger ms-auto">{{ alertas.alertas_stock|length }} alertas</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Medicamento</th>
+            <th>Stock Actual</th>
+            <th>Nivel Mínimo</th>
+            <th>Estado</th>
+            <th class="text-end">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in alertas.alertas_stock %}
+            <tr>
+              <td class="fw-semibold">
+                {{ a.producto.nombre }} {{ a.producto.dosis }}
+                {% if a.producto.es_controlado %}
+                  <span class="badge badge-controlado ms-1">Controlado</span>
+                {% endif %}
+              </td>
+              <td class="fw-bold {% if a.stock_actual == 0 %}text-danger{% else %}text-warning-emphasis{% endif %}">
+                {{ a.stock_actual }} u.
+              </td>
+              <td>{{ a.stock_minimo }} u.</td>
+              <td>
+                {% if a.stock_actual == 0 %}
+                  <span class="badge bg-danger">Quiebre Total de Stock</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">Stock Bajo Mínimo</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'inventario:lote_create' %}?producto_id={{ a.producto.pk }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-circle me-1"></i> Reponer Lote
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-success">
+                <i class="bi bi-check-circle-fill fs-3 d-block mb-1"></i> Todos los medicamentos cuentan con stock sobre el mínimo.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Alertas de Lotes por Vencer en <= 30 días -->
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+  <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
+    <i class="bi bi-hourglass-split text-warning-emphasis fs-5"></i>
+    <h5 class="fw-bold mb-0">Lotes Próximos a Vencer (&le; 30 Días)</h5>
+    <span class="badge bg-warning text-dark ms-auto">{{ alertas.lotes_por_vencer.count }} lotes</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Medicamento</th>
+            <th>Código de Lote</th>
+            <th>Fecha de Vencimiento</th>
+            <th>Días Restantes</th>
+            <th>Stock Remanente</th>
+            <th>Prioridad</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in alertas.lotes_por_vencer %}
+            <tr>
+              <td class="fw-semibold">{{ l.producto.nombre }} {{ l.producto.dosis }}</td>
+              <td class="font-monospace fw-bold">{{ l.codigo }}</td>
+              <td>{{ l.fecha_vencimiento|date:"Y-m-d" }}</td>
+              <td>
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">
+                  {{ l.dias_para_vencer }} días
+                </span>
+              </td>
+              <td class="fw-bold">{{ l.cantidad_actual }} u.</td>
+              <td>
+                <span class="badge badge-sale-primero">
+                  <i class="bi bi-arrow-right-circle me-1"></i> Dispensar Primero (FEFO)
+                </span>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">
+                No hay lotes con fecha de caducidad en los próximos 30 días.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Lotes Vencidos con remanente (Retiro inmediato) -->
+{% if alertas.lotes_vencidos %}
+  <div class="card shadow-sm border-danger rounded-3 mb-4">
+    <div class="card-header bg-danger text-white py-3 d-flex align-items-center gap-2">
+      <i class="bi bi-slash-circle fs-5"></i>
+      <h5 class="fw-bold mb-0">Lotes Vencidos con Saldo (Retiro Obligatorio por Cuarentena)</h5>
+      <span class="badge bg-white text-danger ms-auto">{{ alertas.lotes_vencidos.count }} lotes</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Medicamento</th>
+              <th>Código de Lote</th>
+              <th>Fecha Vencida</th>
+              <th>Saldo No Entregado</th>
+              <th>Acción Sanitaria</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in alertas.lotes_vencidos %}
+              <tr class="table-danger">
+                <td class="fw-semibold">{{ l.producto.nombre }} {{ l.producto.dosis }}</td>
+                <td class="font-monospace fw-bold">{{ l.codigo }}</td>
+                <td>{{ l.fecha_vencimiento|date:"Y-m-d" }}</td>
+                <td class="fw-bold">{{ l.cantidad_actual }} u.</td>
+                <td>
+                  <span class="badge bg-danger">Bloqueado para Dispensación</span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

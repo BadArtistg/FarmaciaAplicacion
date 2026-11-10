@@ -1,0 +1,8 @@
+Django>=5.1,<6.2
+django-otp>=1.5.0
+qrcode>=8.0
+pillow>=11.0.0
+python-dotenv>=1.0.0
+psycopg2-binary>=2.9.9; sys_platform != 'win32'
+pytest>=8.0.0
+pytest-django>=4.9.0

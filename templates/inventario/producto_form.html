@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - Farmacia Práctica{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="fw-bold mb-0">{{ titulo }}</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Código Interno / SKU</label>
+              {{ form.codigo }}
+              {% if form.codigo.errors %}<div class="text-danger small">{{ form.codigo.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Nombre del Medicamento</label>
+              {{ form.nombre }}
+              {% if form.nombre.errors %}<div class="text-danger small">{{ form.nombre.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Forma Farmacéutica</label>
+              {{ form.forma_farmaceutica }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Dosis / Concentración</label>
+              {{ form.dosis }}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Condición de Venta</label>
+              {{ form.condicion_venta }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Precio Referencial ($)</label>
+              {{ form.precio }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Stock Mínimo de Seguridad (Alerta Crítica)</label>
+            {{ form.stock_minimo }}
+          </div>
+
+          <div class="p-3 bg-light rounded-3 border mb-4">
+            <div class="form-check form-switch">
+              {{ form.es_controlado }}
+              <label class="form-check-label fw-semibold text-danger" for="{{ form.es_controlado.id_for_label }}">
+                <i class="bi bi-shield-lock-fill me-1"></i> Medicamento Controlado (Psicotrópico / Estupefaciente)
+              </label>
+            </div>
+            <div class="text-muted small mt-1 ps-4">
+              Si se marca como controlado, sólo el Químico Farmacéutico podrá autorizar su despacho (Decreto 466/404/405).
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'inventario:producto_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold">Guardar Medicamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

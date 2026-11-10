@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Principal - Farmacia Práctica{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold mb-0">Panel Principal</h3>
+    <p class="text-muted small mb-0">Entorno de práctica asistencial · Rol: <strong class="text-primary">{{ user.get_rol_display }}</strong></p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if es_estudiante or es_docente or es_admin %}
+      <a href="{% url 'inventario:lote_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+        <i class="bi bi-plus-circle"></i> Ingresar Lote
+      </a>
+      <a href="{% url 'inventario:producto_create' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+        <i class="bi bi-capsule"></i> Nuevo Medicamento
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Banner de Alertas Críticas Urgentes al Iniciar Sesión (HU2 / CU-04) -->
+{% if alertas.total_alertas > 0 %}
+  <div class="alert alert-warning border-warning d-flex align-items-start gap-3 shadow-sm mb-4">
+    <i class="bi bi-exclamation-triangle-fill fs-3 text-warning-emphasis"></i>
+    <div class="flex-grow-1">
+      <h6 class="fw-bold mb-1">Atención asistencial requerida:</h6>
+      <p class="mb-1 small">
+        Hay <strong>{{ alertas.alertas_stock|length }}</strong> medicamento(s) bajo stock mínimo y 
+        <strong>{{ alertas.lotes_por_vencer.count }}</strong> lote(s) que vencen en los próximos 30 días.
+      </p>
+      <a href="{% url 'inventario:alertas' %}" class="btn btn-sm btn-warning text-dark fw-semibold mt-1">
+        <i class="bi bi-bell-fill me-1"></i> Revisar todas las alertas
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Tarjetas de Métricas -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card p-3 bg-white">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small text-uppercase fw-semibold">Medicamentos</div>
+          <div class="fs-3 fw-bold text-dark mt-1">{{ metricas.total_productos }}</div>
+          <div class="small text-muted">{{ metricas.productos_controlados }} controlados</div>
+        </div>
+        <div class="p-3 bg-primary-subtle text-primary rounded-3">
+          <i class="bi bi-capsule fs-3"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card p-3 bg-white">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small text-uppercase fw-semibold">Unidades en Stock</div>
+          <div class="fs-3 fw-bold text-success mt-1">{{ metricas.total_unidades }}</div>
+          <div class="small text-muted">Stock total vigente</div>
+        </div>
+        <div class="p-3 bg-success-subtle text-success rounded-3">
+          <i class="bi bi-boxes fs-3"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card p-3 bg-white">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small text-uppercase fw-semibold">Lotes por Vencer</div>
+          <div class="fs-3 fw-bold text-warning mt-1">{{ metricas.lotes_por_vencer }}</div>
+          <div class="small text-muted">Vencen en &le; 30 días</div>
+        </div>
+        <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3">
+          <i class="bi bi-hourglass-split fs-3"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card p-3 bg-white">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small text-uppercase fw-semibold">Stock Crítico</div>
+          <div class="fs-3 fw-bold text-danger mt-1">{{ metricas.productos_criticos_count }}</div>
+          <div class="small text-muted">Bajo nivel mínimo</div>
+        </div>
+        <div class="p-3 bg-danger-subtle text-danger rounded-3">
+          <i class="bi bi-shield-exclamation fs-3"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Accesos directos y guía de práctica -->
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="bi bi-arrow-repeat text-primary me-2"></i>Lotes con Salida Inmediata (Regla FEFO)</h5>
+        <a href="{% url 'inventario:producto_list' %}" class="small text-decoration-none">Ver catálogo completo &rarr;</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Medicamento</th>
+                <th>Lote que "Sale Primero"</th>
+                <th>Vencimiento</th>
+                <th>Stock Lote</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in alertas.alertas_stock|slice:":5" %}
+                {% if p.producto.lote_sale_primero %}
+                  <tr>
+                    <td class="fw-semibold">
+                      {{ p.producto.nombre }} {{ p.producto.dosis }}
+                      {% if p.producto.es_controlado %}
+                        <span class="badge badge-controlado ms-1">Controlado</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="badge badge-sale-primero">
+                        <i class="bi bi-arrow-right-circle me-1"></i> {{ p.producto.lote_sale_primero.codigo }}
+                      </span>
+                    </td>
+                    <td>{{ p.producto.lote_sale_primero.fecha_vencimiento|date:"Y-m-d" }}</td>
+                    <td class="fw-bold">{{ p.producto.lote_sale_primero.cantidad_actual }} u.</td>
+                    <td>
+                      {% with b=p.producto.lote_sale_primero.estado_badge %}
+                        <span class="badge-estado {{ b.clase }}">
+                          <i class="bi {{ b.icono }}"></i> {{ b.texto }}
+                        </span>
+                      {% endwith %}
+                    </td>
+                  </tr>
+                {% endif %}
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                    No hay productos con stock actualmente. Ingresa lotes para comenzar la práctica.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="fw-bold mb-0"><i class="bi bi-mortarboard text-primary me-2"></i>Pautas de la Práctica</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-3 small">
+          <li class="d-flex gap-2">
+            <i class="bi bi-check2-circle text-success fs-5"></i>
+            <div>
+              <strong>Regla FEFO obligatoria:</strong>
+              <div class="text-muted">El sistema prioriza automáticamente el lote con fecha de caducidad más cercana para evitar mermas.</div>
+            </div>
+          </li>
+          <li class="d-flex gap-2">
+            <i class="bi bi-shield-lock text-primary fs-5"></i>
+            <div>
+              <strong>Medicamentos Controlados:</strong>
+              <div class="text-muted">Psicotrópicos y estupefacientes (ej. Clonazepam) exigirán autorización exclusiva del Químico Farmacéutico en el Sprint 2.</div>
+            </div>
+          </li>
+          <li class="d-flex gap-2">
+            <i class="bi bi-clock-history text-secondary fs-5"></i>
+            <div>
+              <strong>Trazabilidad y Auditoría:</strong>
+              <div class="text-muted">Todas tus acciones quedan registradas en la bitácora inmutable para evaluación docente.</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

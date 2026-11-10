@@ -1,0 +1,72 @@
+<aside class="sidebar py-3">
+  <div class="px-3 pb-3 mb-2 border-bottom border-secondary">
+    <div class="small text-muted text-uppercase fw-semibold">Navegación</div>
+  </div>
+
+  <nav class="d-flex flex-column">
+    <a href="{% url 'inventario:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i>
+      <span>Panel Principal</span>
+    </a>
+
+    <!-- Módulo de Inventario (Estudiante, Docente, Químico, Admin) -->
+    {% if es_estudiante or es_docente or es_quimico or es_admin %}
+      <div class="px-3 pt-3 pb-1 text-muted small text-uppercase fw-semibold">Inventario</div>
+      <a href="{% url 'inventario:producto_list' %}" class="{% if 'producto' in request.path %}active{% endif %}">
+        <i class="bi bi-capsule"></i>
+        <span>Productos y Lotes (FEFO)</span>
+      </a>
+      <a href="{% url 'inventario:alertas' %}" class="{% if 'alertas' in request.path %}active{% endif %}">
+        <i class="bi bi-bell"></i>
+        <span>Alertas de Stock</span>
+      </a>
+      {% if es_estudiante or es_docente or es_admin %}
+        <a href="{% url 'inventario:lote_create' %}" class="{% if 'lotes/nuevo' in request.path %}active{% endif %}">
+          <i class="bi bi-plus-circle"></i>
+          <span>Ingresar Lote</span>
+        </a>
+      {% endif %}
+    {% endif %}
+
+    <!-- Módulo de Recetas y Despacho (Sprint 2) -->
+    {% if es_estudiante or es_docente or es_quimico %}
+      <div class="px-3 pt-3 pb-1 text-muted small text-uppercase fw-semibold">Dispensación (Sprint 2)</div>
+      <a href="{% url 'recetas:index' %}" class="opacity-75">
+        <i class="bi bi-file-earmark-medical"></i>
+        <span>Receta y Despacho</span>
+      </a>
+    {% endif %}
+
+    <!-- Módulo de Caja (Sprint 3) -->
+    {% if es_cajero or es_admin %}
+      <div class="px-3 pt-3 pb-1 text-muted small text-uppercase fw-semibold">Caja (Sprint 3)</div>
+      <a href="{% url 'caja:index' %}" class="opacity-75">
+        <i class="bi bi-cash-coin"></i>
+        <span>Cobro Simulado</span>
+      </a>
+    {% endif %}
+
+    <!-- Módulo de Supervisión y Administración (Docente y Admin) -->
+    {% if es_docente or es_admin %}
+      <div class="px-3 pt-3 pb-1 text-muted small text-uppercase fw-semibold">Supervisión y Control</div>
+      <a href="{% url 'seguridad:auditoria' %}" class="{% if 'auditoria' in request.path %}active{% endif %}">
+        <i class="bi bi-journal-text"></i>
+        <span>Registro de Actividad</span>
+      </a>
+    {% endif %}
+
+    {% if es_admin %}
+      <a href="{% url 'seguridad:usuario_list' %}" class="{% if 'usuarios' in request.path %}active{% endif %}">
+        <i class="bi bi-people"></i>
+        <span>Usuarios y Roles (2FA)</span>
+      </a>
+    {% endif %}
+
+    <div class="mt-4 pt-3 border-top border-secondary px-3">
+      <a href="{% url 'seguridad:logout' %}" class="text-danger">
+        <i class="bi bi-box-arrow-left"></i>
+        <span>Cerrar Sesión</span>
+      </a>
+    </div>
+  </nav>
+</aside>
