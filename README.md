@@ -4,9 +4,9 @@ Plataforma web académica orientada a la simulación y práctica realista de los
 
 ---
 
-## 📌 Estado del Proyecto: Sprint 1 Completado & Base Escalable
+## Estado del Proyecto: Sprint 1 Completado & Base Escalable
 
-El proyecto implementa la arquitectura y los componentes completos hasta el **Sprint 1 (Logueo Seguro e Inventario)**, dejando la estructura modular preparada para los siguientes sprints según el **Informe de la Etapa II (Diseño de la Solución)**:
+El proyecto implementa la arquitectura y los componentes completos hasta el **Sprint 1 (Logueo Seguro e Inventario)**, dejando la estructura modular preparada para los siguientes sprints:
 
 - **Sprint 1 (Completado):** Autenticación segura con bloqueo por fuerza bruta tras 5 intentos (PS-01), Segundo Factor (2FA/TOTP) para roles con privilegio, control de acceso basado en roles (RBAC), auditoría inmutable de eventos, catálogo de medicamentos e inventario por lotes con algoritmo sanitario **FEFO (First Expired, First Out)**, etiqueta *"Sale primero"*, rechazo de lotes vencidos (PF-03) y panel de alertas de stock crítico y vencimientos.
 - **Sprint 2 (Preparado en `apps/recetas` y `apps/dispensacion`):** Registro de recetas, pacientes ficticios, consumo de cupo mensual de programas de salud, autorización de medicamentos controlados por Químico Farmacéutico y dispensación gratuita.
@@ -14,7 +14,7 @@ El proyecto implementa la arquitectura y los componentes completos hasta el **Sp
 
 ---
 
-## 🏛 Arquitectura 4+1 (Kruchten)
+##  Arquitectura 4+1 (Kruchten)
 
 1. **Vista de Escenarios (Casos de Uso):**
    - **CU-01 / CU-02:** Registro de producto y lote con validación de caducidad (`vencimiento > hoy`).
@@ -48,7 +48,7 @@ El proyecto implementa la arquitectura y los componentes completos hasta el **Sp
 
 ---
 
-## 🔒 Matriz de Roles y Privilegios (Sección 6.1)
+## Matriz de Roles y Privilegios (Sección 6.1)
 
 | Rol | Consultar Inventario y Alertas | Registrar Productos y Lotes | Registrar Receta y Despachar | Autorizar Controlado | Cobrar y Emitir Comprobante | Ver Registro de Actividad | Gestionar Usuarios / 2FA |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -60,7 +60,7 @@ El proyecto implementa la arquitectura y los componentes completos hasta el **Sp
 
 ---
 
-## 🔑 Credenciales de Prueba Precargadas
+## Credenciales de Prueba Precargadas
 
 | Usuario | Rol | Contraseña | 2FA (TOTP) |
 | :--- | :--- | :--- | :--- |
@@ -72,9 +72,9 @@ El proyecto implementa la arquitectura y los componentes completos hasta el **Sp
 
 ---
 
-## 🚀 Puesta en Marcha
+## Puesta en Marcha
 
-### Opción 1: Ejecución Local Inmediata (Python Virtualenv)
+### Opción 1: Ejecución Local
 
 1. **Activar el entorno virtual:**
    - En Windows PowerShell:
@@ -105,7 +105,7 @@ docker compose exec app python manage.py cargar_datos_practica
 
 ---
 
-## 🧪 Pruebas Automatizadas
+## Pruebas Automatizadas
 
 El proyecto incluye pruebas que validan los casos representativos del plan de pruebas:
 - **PS-01:** Bloqueo de cuenta tras 5 contraseñas incorrectas seguidas y registro en auditoría.
