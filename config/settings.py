@@ -145,6 +145,6 @@ LOGIN_REDIRECT_URL = 'inventario:dashboard'
 LOGOUT_REDIRECT_URL = 'seguridad:login'
 
 # Modo práctica para simulación estudiantil en INACAP
-MODO_PRACTICA = os.getenv('MODO_PRACTICA', 'True').lower() in ('true', '1', 't')
+MODO_PRACTICA = os.getenv('MODO_PRACTICA', 'False').lower() in ('true', '1', 't')
 CODIGO_2FA_PRACTICA = '123456'
 MAX_INTENTOS_LOGIN = 5
