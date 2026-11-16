@@ -1,9 +1,8 @@
 import base64
 
-try:
-    import pyotp
-except ImportError:
-    pyotp = None
+import io
+import pyotp
+import qrcode
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -75,3 +74,31 @@ def validar_codigo_totp(usuario: Usuario, codigo: str) -> bool:
             pass
 
     return False
+
+ISSUER_OTP = 'Farmacia Práctica INACAP'
+
+
+def generar_secreto_otp() -> str:
+    """Secreto aleatorio en base32 que se comparte con la app autenticadora."""
+    return pyotp.random_base32()
+
+
+def construir_uri_otp(usuario, secreto: str) -> str:
+    """URI estándar otpauth:// que las apps autenticadoras entienden."""
+    return pyotp.TOTP(secreto).provisioning_uri(
+        name=usuario.username, issuer_name=ISSUER_OTP
+    )
+
+
+def generar_qr_data_uri(uri: str) -> str:
+    """Dibuja el QR en memoria y lo devuelve listo para un <img src=...>."""
+    imagen = qrcode.make(uri)
+    buffer = io.BytesIO()
+    imagen.save(buffer, format='PNG')
+    return 'data:image/png;base64,' + base64.b64encode(buffer.getvalue()).decode()
+
+
+def verificar_codigo_con_secreto(secreto: str, codigo: str) -> bool:
+    """Valida un código TOTP real. valid_window=1 tolera 30 s de desfase de reloj."""
+    return pyotp.TOTP(secreto).verify((codigo or '').strip(), valid_window=1)
+

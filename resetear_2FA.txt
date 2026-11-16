@@ -1,0 +1,5 @@
+// Para resetear 2FA de Usuarios
+
+python manage.py shell
+>>> from apps.seguridad.models import Usuario
+>>> Usuario.objects.filter(username='docente').update(secreto_otp=None, dos_factores_activo=False)

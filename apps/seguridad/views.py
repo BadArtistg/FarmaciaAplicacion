@@ -7,7 +7,14 @@ from django.conf import settings
 
 from .models import Usuario, RolUsuario, AuditoriaEvento
 from .forms import LoginForm, TwoFactorForm, UsuarioForm
-from .services import registrar_auditoria, validar_codigo_totp
+from .services import (
+    construir_uri_otp,
+    generar_qr_data_uri,
+    generar_secreto_otp,
+    registrar_auditoria,
+    validar_codigo_totp,
+    verificar_codigo_con_secreto,
+)
 from .decorators import requiere_roles
 
 
@@ -57,6 +64,8 @@ def login_view(request):
                     detalle={'rol': user.rol, 'ip': request.META.get('REMOTE_ADDR')},
                     request=request
                 )
+                if not user.secreto_otp and not settings.MODO_PRACTICA:
+                    return redirect('seguridad:two_factor_setup')
                 return redirect('seguridad:two_factor')
 
             # Login directo para roles sin 2FA (Estudiante, Cajero)
@@ -117,6 +126,55 @@ def login_view(request):
                 messages.error(request, 'Usuario o contraseña inválidos.')
 
     return render(request, 'seguridad/login.html', {'form': form})
+
+
+@require_http_methods(["GET", "POST"])
+def two_factor_setup_view(request):
+    user_id = request.session.get('pre_2fa_user_id')
+    usuario = request.user if request.user.is_authenticated else None
+    if usuario is None and user_id:
+        usuario = get_object_or_404(Usuario, id=user_id)
+    if usuario is None:
+        return redirect('seguridad:login')
+
+    if usuario.secreto_otp:
+        if user_id == usuario.id and not request.user.is_authenticated:
+            return redirect('seguridad:two_factor')
+        messages.info(request, 'El segundo factor ya está activado para esta cuenta.')
+        return redirect('inventario:dashboard')
+
+    form = TwoFactorForm(request.POST or None)
+    session_key = f'pre_2fa_setup_secret_{usuario.id}'
+    secreto = request.session.get(session_key)
+    if not secreto:
+        secreto = generar_secreto_otp()
+        request.session[session_key] = secreto
+
+    if request.method == 'POST' and form.is_valid():
+        if verificar_codigo_con_secreto(secreto, form.cleaned_data['codigo']):
+            usuario.secreto_otp = secreto
+            usuario.dos_factores_activo = True
+            usuario.save(update_fields=['secreto_otp', 'dos_factores_activo'])
+            del request.session[session_key]
+            registrar_auditoria(
+                accion='SEGUNDO_FACTOR_ACTIVADO',
+                entidad='Usuario',
+                usuario=usuario,
+                detalle={'metodo': 'TOTP'},
+                request=request
+            )
+            if user_id == usuario.id and not request.user.is_authenticated:
+                return redirect('seguridad:two_factor')
+            messages.success(request, 'El segundo factor se activó correctamente.')
+            return redirect('inventario:dashboard')
+        messages.error(request, 'El código no es válido. Revisa la hora de tu teléfono e inténtalo nuevamente.')
+
+    uri = construir_uri_otp(usuario, secreto)
+    return render(request, 'seguridad/two_factor_setup.html', {
+        'form': form,
+        'secreto': secreto,
+        'qr_data_uri': generar_qr_data_uri(uri),
+    })
 
 
 def two_factor_verify_view(request):

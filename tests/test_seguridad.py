@@ -1,4 +1,5 @@
 import pytest
+import pyotp
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from apps.seguridad.models import Usuario, RolUsuario, AuditoriaEvento
@@ -83,11 +84,22 @@ class TestSeguridadYAutenticacion:
         })
 
         assert response.status_code == 302
-        assert response.url == reverse('seguridad:two_factor')
+        assert response.url == reverse('seguridad:two_factor_setup')
 
-        # Verificar segundo factor con código de práctica '123456'
+        setup_url = response.url
+        client.get(setup_url)
+        secreto = client.session[f'pre_2fa_setup_secret_{docente.id}']
+        codigo = pyotp.TOTP(secreto).now()
+        response = client.post(setup_url, {'codigo': codigo})
+        assert response.status_code == 302
+        assert response.url == reverse('seguridad:two_factor')
+        docente.refresh_from_db()
+        assert docente.dos_factores_activo is True
+        assert docente.secreto_otp == secreto
+
+        # Verificar el código TOTP configurado durante el enrolamiento.
         two_fa_url = reverse('seguridad:two_factor')
-        res_2fa = client.post(two_fa_url, {'codigo': '123456'})
+        res_2fa = client.post(two_fa_url, {'codigo': pyotp.TOTP(secreto).now()})
         assert res_2fa.status_code == 302
         assert res_2fa.url == reverse('inventario:dashboard')
 

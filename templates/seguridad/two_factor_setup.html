@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Activar 2FA - Farmacia Práctica INACAP{% endblock %}
+
+{% block auth_content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow border-0 rounded-4">
+      <div class="card-body p-4 p-md-5 text-center">
+        <h4 class="fw-bold mb-3">Activa tu segundo factor</h4>
+        <ol class="text-start small text-muted mb-3">
+          <li>Abre Google Authenticator (o similar) en tu teléfono.</li>
+          <li>Escanea este código QR.</li>
+          <li>Escribe aquí el código de 6 dígitos que muestre la app.</li>
+        </ol>
+
+        <img src="{{ qr_data_uri }}" alt="Código QR para tu app autenticadora"
+             width="220" height="220" class="mb-2">
+        <p class="small text-muted">¿No puedes escanear? Clave manual:<br>
+          <code>{{ secreto }}</code></p>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ form.codigo }}
+            {% if form.codigo.errors %}
+              <div class="text-danger small mt-2">{{ form.codigo.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+            Confirmar y activar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -6,6 +6,7 @@ app_name = 'seguridad'
 urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('login/2fa/', views.two_factor_verify_view, name='two_factor'),
+    path('login/2fa/activar/', views.two_factor_setup_view, name='two_factor_setup'),
     path('logout/', views.logout_view, name='logout'),
     path('usuarios/', views.usuario_list_view, name='usuario_list'),
     path('usuarios/nuevo/', views.usuario_create_view, name='usuario_create'),
